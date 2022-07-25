@@ -12749,6 +12749,7 @@ var axios_1 = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
 var $ = __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js");
 var $showsList = $("#showsList");
 var $episodesArea = $("#episodesArea");
+var $episodesList = $("#episodesList");
 var $searchForm = $("#searchForm");
 var BASE_URL = "https://api.tvmaze.com";
 var DEFAULT_IMG = "https://tinyurl.com/tv-missing";
@@ -12763,13 +12764,9 @@ function getShowsByTerm(term) {
         var resp, shows;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0:
-                    // ADD: Remove placeholder & make request to TVMaze search shows API.
-                    console.log("inside");
-                    return [4 /*yield*/, axios_1.default.get("".concat(BASE_URL, "/search/shows?q=").concat(term))];
+                case 0: return [4 /*yield*/, axios_1.default.get("".concat(BASE_URL, "/search/shows?q=").concat(term))];
                 case 1:
                     resp = _a.sent();
-                    console.log(resp);
                     shows = resp.data.map(function (s) {
                         var _a;
                         return ({
@@ -12779,7 +12776,6 @@ function getShowsByTerm(term) {
                             image: (((_a = s.show.image) === null || _a === void 0 ? void 0 : _a.medium) || DEFAULT_IMG),
                         });
                     });
-                    console.log(shows);
                     return [2 /*return*/, shows];
             }
         });
@@ -12831,9 +12827,57 @@ $searchForm.on("submit", function (evt) {
 /** Given a show ID, get from API and return (promise) array of episodes:
  *      { id, name, season, number }
  */
-// async function getEpisodesOfShow(id) { }
+function getEpisodesOfShow(id) {
+    return __awaiter(this, void 0, void 0, function () {
+        var resp, episodes;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, axios_1.default.get("".concat(BASE_URL, "/shows/").concat(id, "/episodes"))];
+                case 1:
+                    resp = _a.sent();
+                    episodes = resp.data.map(function (e) { return ({
+                        id: e.id,
+                        name: e.name,
+                        season: e.season,
+                        number: e.number,
+                    }); });
+                    return [2 /*return*/, episodes];
+            }
+        });
+    });
+}
 /** Write a clear docstring for this function... */
-// function populateEpisodes(episodes) { }
+function populateEpisodes(episodes) {
+    $episodesList.empty();
+    for (var _i = 0, episodes_1 = episodes; _i < episodes_1.length; _i++) {
+        var episode = episodes_1[_i];
+        var $episode = $("<li>\n                <div data-episode-id=\"".concat(episode.id, "\" class=\"Episode col-md-12 col-lg-6 mb-4\">\n                    <div class=\"media\">\n                        <div class=\"media-body\">\n                            <h5 class=\"text-primary\">").concat(episode.name, "</h5>\n                            <div><small>").concat(episode.season, "</small></div>\n                        </div>\n                    </div>\n                </div>\n            </li>\n            "));
+        $episodesList.append($episode);
+    }
+    $episodesArea.show();
+}
+/** Handle search form submission: get shows from API and display.
+ *    Hide episodes area (that only gets shown if they ask for episodes)
+ */
+function getEpisodesAndDisplay(evt) {
+    return __awaiter(this, void 0, void 0, function () {
+        var showId, episodes;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    showId = $(evt.target).closest(".Show").data("show-id");
+                    return [4 /*yield*/, getEpisodesOfShow(showId)];
+                case 1:
+                    episodes = _a.sent();
+                    populateEpisodes(episodes);
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+//TODO: fix how to add event listener
+var $episodeButtons = $(".Show-getEpisodes");
+$episodeButtons.on("click", getEpisodesAndDisplay);
 
 
 /***/ })
